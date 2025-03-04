@@ -3,9 +3,4 @@ pandas
 numpy
 matplotlib
 altair
-os
-datetime
-hashlib
-json
-calendar
 speech_recognition
