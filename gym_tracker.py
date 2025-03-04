@@ -5,7 +5,6 @@ import datetime
 import hashlib
 import json
 import calendar
-import speech_recognition as sr
 # -------------------- Authentication --------------------
 # Function to hash passwords
 def hash_password(password):
@@ -17,6 +16,11 @@ if not os.path.exists(USER_CREDENTIALS_FILE):
         json.dump({"admin": hash_password("admin")}, f)  # Default user
 with open(USER_CREDENTIALS_FILE, "r") as f:
     users = json.load(f)
+# Initialize session state for authentication
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
+if "username" not in st.session_state:
+    st.session_state.username = None
 # Streamlit login
 st.sidebar.title(":lock: Login / Register")
 username = st.sidebar.text_input("Username")
@@ -24,10 +28,11 @@ password = st.sidebar.text_input("Password", type="password")
 login_button = st.sidebar.button("Login")
 register_button = st.sidebar.button("Register")
 # Authentication check
-authenticated = False
 if login_button:
     if username in users and users[username] == hash_password(password):
-        authenticated = True
+        st.session_state.authenticated = True
+        st.session_state.username = username
+        st.sidebar.success("Login successful!")
     else:
         st.sidebar.error("Invalid username or password")
 # Registration logic
@@ -39,11 +44,12 @@ if register_button:
         with open(USER_CREDENTIALS_FILE, "w") as f:
             json.dump(users, f)
         st.sidebar.success("Registration successful! Please log in.")
-if not authenticated:
+# Check if user is authenticated
+if not st.session_state.authenticated:
     st.warning("Please log in to access the app.")
     st.stop()
 # -------------------- Data Handling --------------------
-DATA_FILE = f"{username}_gym_weights.csv"
+DATA_FILE = f"{st.session_state.username}_gym_weights.csv"
 if os.path.exists(DATA_FILE):
     df = pd.read_csv(DATA_FILE)
 else:
@@ -52,7 +58,7 @@ def calculate_1rm(weight, reps):
     return round(weight * (1 + reps / 30), 1)
 # -------------------- UI --------------------
 st.markdown("<h1 style='text-align: center;'>:man-lifting-weights: Gym Tracker</h1>", unsafe_allow_html=True)
-st.write(f"Welcome, **{username}**! Track your workouts, estimate your 1RM, and visualize progress.")
+st.write(f"Welcome, **{st.session_state.username}**! Track your workouts, estimate your 1RM, and visualize progress.")
 st.markdown("---")
 col1, col2 = st.columns(2)
 with col1:
@@ -113,6 +119,10 @@ with tab3:
             st.write(f"- {day}/{month}/{year}: {workout_days[day]} workouts")
     else:
         st.warning("No workouts logged yet.")
-st.sidebar.text(":unlock: Logged in as: " + username)
-st.sidebar.button("Logout", on_click=lambda: st.experimental_rerun())
-# Run with: streamlit run gym_tracker.py
+# Logout button
+if st.sidebar.button("Logout"):
+    st.session_state.authenticated = False
+    st.session_state.username = None
+    st.experimental_rerun()
+st.sidebar.text(":unlock: Logged in as: " + st.session_state.username)
+# Run with: streamlit run gym_tracker_with_registration.py
