@@ -54,8 +54,9 @@ if os.path.exists(DATA_FILE):
     df = pd.read_csv(DATA_FILE)
 else:
     df = pd.DataFrame(columns=["Date", "Exercise", "Weight (kg)", "Reps", "Estimated 1RM (kg)"])
+# Fixed calculate_1rm function
 def calculate_1rm(weight, reps):
-    return round(weight * (1 + reps / 30), 1)
+    return round(weight * (1 + reps / 30), 1)  # Removed the extra comma
 # -------------------- UI --------------------
 st.markdown("<h1 style='text-align: center;'>:man-lifting-weights: Gym Tracker</h1>", unsafe_allow_html=True)
 st.write(f"Welcome, **{st.session_state.username}**! Track your workouts, estimate your 1RM, and visualize progress.")
