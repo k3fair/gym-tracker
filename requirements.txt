@@ -3,4 +3,4 @@ pandas
 numpy
 matplotlib
 altair
-speech_recognition
+SpeechRecognition
